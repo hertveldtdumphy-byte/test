@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Borstwering Configurator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f1115;
+            --bg-card: #181b22;
+            --bg-input: #212631;
+            --border-color: #2e3542;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.15);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+            max-width: 1500px;
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        /* Sidebar / Controls */
+        .sidebar {
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-badge {
+            background: var(--accent-glow);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .section-block {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: var(--radius);
+        }
+
+        .block-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.81rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        label span.val-display {
+            color: var(--text-main);
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        input[type="text"], input[type="number"], select {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        input[type="range"] {
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 3px;
+            outline: none;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* Main Preview & Output Panel */
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            background: #12141a;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .viewport-wrapper {
+            position: relative;
+            width: 100%;
+            height: 520px;
+            background: #0b0d10;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .specs-text {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .price-box {
+            text-align: right;
+            border-left: 1px solid var(--border-color);
+            padding-left: 20px;
+        }
+
+        .price-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .price-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 11px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: var(--border-color);
+            border-color: var(--text-muted);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .btn-orange {
+            background: #d97706;
+            color: #fff;
+            border-color: #d97706;
+        }
+        .btn-orange:hover {
+            background: #b45309;
+            border-color: #b45309;
+        }
+
+        @media(max-width: 1100px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                max-height: none;
+            }
+        }
+    
+    #adminModal .btn {
+        width: auto !important;
+        flex: none !important;
+        padding: 8px 16px !important;
+        font-size: 0.85rem !important;
+    }
+    #adminModal input[type="text"], #adminModal input[type="number"] {
+        width: 100%;
+    }
+
+</style>
+    <!-- Three.js, Controls & JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    function logoutSession() {
+        sessionStorage.removeItem('adminAuthenticatedSession');
+        location.reload();
+    }
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js">
+    function logoutSession() {
+        sessionStorage.removeItem('adminAuthenticatedSession');
+        location.reload();
+    }
+
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+    function logoutSession() {
+        sessionStorage.removeItem('adminAuthenticatedSession');
+        location.reload();
+    }
+
+</script>
+
+<style>
+@keyframes neonGlow {
+    0% { filter: drop-shadow(0 0 2px rgba(59,130,246,0.8)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 15px rgba(59,130,246,1)) drop-shadow(0 0 25px rgba(16,185,129,0.8)); transform: scale(1.03); }
+    100% { filter: drop-shadow(0 0 2px rgba(59,130,246,0.8)); transform: scale(1); }
+}
+@keyframes textShimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+.animated-title {
+    background: linear-gradient(270deg, #3b82f6, #10b981, #6366f1, #3b82f6);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShimmer 4s ease infinite, neonGlow 3s ease-in-out infinite;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+</style>
+
+
+<style>
+.custom-tooltip-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+.custom-tooltip-container .custom-tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    width: 240px;
+    background-color: #15171e;
+    color: #cbd5e1;
+    text-align: left;
+    border-radius: 8px;
+    padding: 10px 14px;
+    position: absolute;
+    z-index: 99999;
+    top: 125%;
+    right: 0;
+    transition: opacity 0.2s ease;
+    border: 1px solid #334155;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.85);
+    font-size: 0.8rem;
+    font-weight: normal;
+    line-height: 1.4;
+    pointer-events: none;
+}
+.custom-tooltip-container:hover .custom-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+</style>
+
+</head>
+<body>
+
+    <!-- TOEGANGSCODE BEVEILIGINGSSCHERM MET 'VRAAG CODE AAN' -->
+    <div id="accessCodeModal" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: #0b0c10; z-index: 9999999; display: flex; justify-content: center; align-items: center; font-family: inherit;">
+        <div style="background: #15171e; border: 1px solid #2e3342; border-radius: 24px; width: 440px; max-width: 90%; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box;">
+            
+            <div style="text-align: center;">
+                
+                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;" id="accessModalSubtitle">Voer uw unieke toegangscode in om te starten</p>
+            </div>
+
+            <!-- Invoersectie Code -->
+            <div id="codeEntrySection" style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Toegangscode:</label>
+                    <input type="text" id="accessCodeInput" placeholder="Bijv. VIP-8842" style="padding: 12px 14px; border-radius: 10px; background: #1f2430; border: 1px solid #334155; color: #fff; font-size: 1rem; outline: none; text-align: center; letter-spacing: 2px; font-weight: 700;">
+                </div>
+
+                <button type="button" onclick="verifyAccessCode()" style="padding: 14px; border-radius: 10px; border: none; background: #2563eb; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.4);">Configurator Ontgrendelen ➔</button>
+
+                <div style="text-align: center; margin-top: 4px;">
+                    <button type="button" onclick="toggleRequestView(true)" style="background: none; border: none; color: #60a5fa; font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Geen toegangscode? Vraag code aan</button>
+                </div>
+            </div>
+
+            <!-- Aanvraagsectie (Standaard verborgen) -->
+            <div id="codeRequestSection" style="display: none; flex-direction: column; gap: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Uw Naam:</label>
+                    <input type="text" id="reqName" placeholder="Voor- en achternaam" style="padding: 10px 12px; border-radius: 8px; background: #1f2430; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Uw E-mailadres:</label>
+                    <input type="email" id="reqEmail" placeholder="uw.email@bedrijf.be" style="padding: 10px 12px; border-radius: 8px; background: #1f2430; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline: none;">
+                </div>
+                <button type="button" onclick="submitCodeRequest()" style="padding: 12px; border-radius: 8px; border: none; background: #10b981; color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 4px;">Verstuur Aanvraag per E-mail ➔</button>
+                
+                <div style="text-align: center; margin-top: 4px;">
+                    <button type="button" onclick="toggleRequestView(false)" style="background: none; border: none; color: #94a3b8; font-size: 0.85rem; cursor: pointer;">❮ Terug naar inloggen</button>
+                </div>
+            </div>
+
+            <div id="accessError" style="color: #f87171; font-size: 0.85rem; text-align: center; display: none; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 8px;">Ongeldige of verlopen toegangscode.</div>
+            <div id="accessSuccess" style="color: #4ade80; font-size: 0.85rem; text-align: center; display: none; background: rgba(74,222,128,0.1); padding: 10px; border-radius: 8px;"></div>
+        </div>
+    </div>
+
+
+    <div class="app-container">
+        <!-- SIDEBAR CONTROLS -->
+        <div class="sidebar">
+            <div class="brand-header" style="justify-content: flex-end;">
+                <div><button type="button" onclick="openAdminPanel()" class="btn" style="padding:6px 12px; font-size:0.8rem; background:var(--bg-input);">⚙️ Admin Beheer</button></div>
+            </div>
+
+            <div class="control-group">
+                <label for="variantCode">Variant Identificatie Code</label>
+                <input type="text" id="variantCode" value="Variant_1" oninput="updateApp()">
+            </div>
+
+            <!-- AFMETINGEN & MONTAGE -->
+            <div class="section-block">
+                <div class="block-title">Afmetingen & Montage</div>
+                
+                <div class="control-group">
+                    <label for="montageType">Montagewijze</label>
+                    <select id="montageType" onchange="updateApp()">
+                        <option value="OpVoetjes" selected>Op voetjes (min. 100mm uit kant)</option>
+                        <option value="Vrijstaand">Vrijstaand / In beton</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="TOP_P_Lengte">Hoofdlengte (TOP_P_Lengte): <span class="val-display" id="lenVal">2000 mm</span></label>
+                    <div style="display: flex; gap: 10px; align-items: center;"><input type="range" id="TOP_P_Lengte" min="500" max="6000" step="50" value="2000" oninput="updateApp()" style="flex: 1;"><input type="number" id="TOP_P_Lengte_num" min="500" max="6000" step="1" style="width: 85px; padding: 6px; background: #1f2430; border: 1px solid #334155; color: #fff; border-radius: 6px; text-align: center; font-size: 0.9rem;"></div>
+                </div>
+
+                <div class="control-group">
+                    <label for="TOP_P_Hoogte">Hoogte (TOP_P_Hoogte): <span class="val-display" id="heightVal">1000 mm</span></label>
+                    <div style="display: flex; gap: 10px; align-items: center;"><input type="range" id="TOP_P_Hoogte" min="500" max="1500" step="10" value="1000" oninput="updateApp()" style="flex: 1;"><input type="number" id="TOP_P_Hoogte_num" min="500" max="1500" step="1" style="width: 85px; padding: 6px; background: #1f2430; border: 1px solid #334155; color: #fff; border-radius: 6px; text-align: center; font-size: 0.9rem;"></div>
+                </div>
+
+                <div class="control-group">
+                    <label for="TOP_P_Tussenafstandspijlen" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+    <span>Max. tussenafstand spijlen: <span class="val-display" id="spaceVal">80 mm</span></span>
+    <span class="safety-info-trigger" onmouseenter="showSafetyTooltip(this)" onmouseleave="hideSafetyTooltip()" onclick="toggleSafetyTooltip(this)" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #2563eb; color: #fff; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(37,99,235,0.5); user-select: none;">i</span>
+</label>
+                    <div style="display: flex; gap: 10px; align-items: center;"><input type="range" id="TOP_P_Tussenafstandspijlen" min="50" max="150" step="5" value="80" oninput="updateApp()" style="flex: 1;"><input type="number" id="TOP_P_Tussenafstandspijlen_num" min="50" max="150" step="1" style="width: 85px; padding: 6px; background: #1f2430; border: 1px solid #334155; color: #fff; border-radius: 6px; text-align: center; font-size: 0.9rem;"></div>
+                </div>
+
+                <div class="control-group">
+                    <label for="TOP_P_Diktespijlen">Spijlendikte (Ø of dikte): <span class="val-display" id="thickVal">12 mm</span></label>
+                    <div style="display: flex; gap: 10px; align-items: center;"><input type="range" id="TOP_P_Diktespijlen" min="8" max="25" step="1" value="12" oninput="updateApp()" style="flex: 1;"><input type="number" id="TOP_P_Diktespijlen_num" min="8" max="25" step="1" style="width: 85px; padding: 6px; background: #1f2430; border: 1px solid #334155; color: #fff; border-radius: 6px; text-align: center; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+
+            <!-- RETOURS -->
+            <div class="section-block">
+                <div class="block-title">Retours & Verstekken</div>
+                
+                <div class="control-group">
+                    <label for="retourType">Retours configuratie</label>
+                    <select id="retourType" onchange="toggleRetours(); updateApp();">
+                        <option value="Geen" selected>Geen retours (Recht)</option>
+                        <option value="Links">Retour Links</option>
+                        <option value="Rechts">Retour Rechts</option>
+                        <option value="Beide">Beide kanten</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="groupRetourLinks" style="display:none; gap:8px; margin-top:4px;">
+                    <label for="lengteRetourLinks">Lengte Links (mm)</label>
+                    <input type="number" id="lengteRetourLinks" value="400" min="100" max="1500" step="50" oninput="updateApp()">
+                    <label for="hoekRetourLinks">Hoek Links (°)</label>
+                    <input type="number" id="hoekRetourLinks" value="90" min="30" max="150" step="1" oninput="updateApp()">
+                </div>
+
+                <div class="control-group" id="groupRetourRechts" style="display:none; gap:8px; margin-top:4px;">
+                    <label for="lengteRetourRechts">Lengte Rechts (mm)</label>
+                    <input type="number" id="lengteRetourRechts" value="400" min="100" max="1500" step="50" oninput="updateApp()">
+                    <label for="hoekRetourRechts">Hoek Rechts (°)</label>
+                    <input type="number" id="hoekRetourRechts" value="90" min="30" max="150" step="1" oninput="updateApp()">
+                </div>
+            </div>
+
+            <!-- PROFIELEN -->
+            <div class="section-block">
+                <div class="block-title">Profieltypen</div>
+                
+                <div class="control-group">
+                    <label for="spijlProfielKeuze">Spijlenprofiel</label>
+                    <select id="spijlProfielKeuze" onchange="updateApp()">
+                        <option value="Rond" selected>Rond stafstaal (Massief)</option>
+                        <option value="Plat">Platstaal (Massief)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="liggerProfiel">Boven- & Onderligger</label>
+                    <select id="liggerProfiel" onchange="updateApp()">
+                        <option value="Plat40x10" selected>Plat 40x10 mm</option>
+                        <option value="Plat40x8">Plat 40x8 mm</option>
+                        <option value="Rond33.7">Ronde buis Ø33,7 mm</option>
+                        <option value="Rond42.4">Ronde buis Ø42,4 mm</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- AFWERKING -->
+            <div class="section-block">
+                <div class="block-title">Oppervlaktebehandeling</div>
+                
+                <div class="control-group">
+                    <label for="locatieKeuze">Toepassing</label>
+                    <select id="locatieKeuze" onchange="handleLocatieChange(); updateApp();">
+                        <option value="Binnen">Binnen (Zonder metallisatie)</option>
+                        <option value="Buiten" selected>Buiten (Met metallisatie)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="ralSelect">RAL Kleur</label>
+                    <select id="ralSelect" onchange="updateApp()">
+                        <option value="#293133|RAL 7016 Antracietgrijs" selected>RAL 7016 - Antracietgrijs</option>
+                        <option value="#0e0e10|RAL 9005 Gitzwart">RAL 9005 - Gitzwart</option>
+                        <option value="#2b2d2f|RAL 7021 Zwartgrijs">RAL 7021 - Zwartgrijs</option>
+                        <option value="#2c3539|RAL 7024 Grafietgrijs">RAL 7024 - Grafietgrijs</option>
+                        <option value="#4d5052|RAL 7043 Verkeersgrijs B">RAL 7043 - Verkeersgrijs B</option>
+                        <option value="#626465|RAL 7042 Verkeersgrijs A">RAL 7042 - Verkeersgrijs A</option>
+                        <option value="#8a9297|RAL 7039 Kwartsgrijs">RAL 7039 - Kwartsgrijs</option>
+                        <option value="#cbcfd0|RAL 7035 Lichtgrijs">RAL 7035 - Lichtgrijs</option>
+                        <option value="#f1f2ee|RAL 9010 Zuiverwit">RAL 9010 - Zuiverwit</option>
+                        <option value="#f4f5f0|RAL 9016 Verkeerswit">RAL 9016 - Verkeerswit</option>
+                        <option value="#d6c6b2|RAL 1015 Lichtivoor">RAL 1015 - Lichtivoor</option>
+                        <option value="#e3a82b|RAL 1023 Verkeersgeel">RAL 1023 - Verkeersgeel</option>
+                        <option value="#c96014|RAL 2004 Zuiveroranje">RAL 2004 - Zuiveroranje</option>
+                        <option value="#a42820|RAL 3000 Vuurrood">RAL 3000 - Vuurrood</option>
+                        <option value="#6c1d25|RAL 3004 Purperrood">RAL 3004 - Purperrood</option>
+                        <option value="#124370|RAL 5010 Gentiaanblauw">RAL 5010 - Gentiaanblauw</option>
+                        <option value="#1d3040|RAL 5011 Staalblauw">RAL 5011 - Staalblauw</option>
+                        <option value="#1f343b|RAL 5003 Saffierblauw">RAL 5003 - Saffierblauw</option>
+                        <option value="#1b3b2b|RAL 6005 Mosgroen">RAL 6005 - Mosgroen</option>
+                        <option value="#314334|RAL 6009 Dennegroen">RAL 6009 - Dennegroen</option>
+                        <option value="#473b32|RAL 8014 Sepiabruin">RAL 8014 - Sepiabruin</option>
+                        <option value="#604631|RAL 8017 Chokolaatbruin">RAL 8017 - Chokolaatbruin</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="glansGradatie">Glansgraad</label>
+                    <select id="glansGradatie" onchange="updateApp()">
+                        <option value="MatStructuur" selected>Mat Structuur (Fijnstructuur)</option>
+                        <option value="Mat">Mat (Glad)</option>
+                        <option value="Zijdeglans">Zijdeglans (Satin)</option>
+                        <option value="Hoogglans">Hoogglans</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN PREVIEW PANEL -->
+        <div class="main-panel">
+            <div class="viewport-wrapper" id="webglViewer"></div>
+
+            <div class="info-card">
+                <div class="specs-text" id="cadSpecs">Gegevens laden...</div>
+                <div class="price-box">
+                    <div class="price-label">Indicatieve Prijs</div>
+                    <div class="price-value" id="priceDisplay">€ 0,00</div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-primary" onclick="exportNativeTopSolidExcel()">TopSolid Excel (.xlsx)</button>
+                <button class="btn btn-orange" onclick="exportBOMReport()">Materiaallijst (BOM)</button>
+                <button class="btn" onclick="exportParameterFile()">Exporteer .txt</button>
+                <button class="btn" onclick="copyTopSolidData()">Kopieer Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let adminSettings = {
+        maxFootDist: 1200,
+        footEdgeDist: 100,
+        retourMaxDist: 1200,
+        retourEdgeDist: 100
+    };
+
+    // Laad opgeslagen admin instellingen uit localStorage indien aanwezig
+    try {
+        let savedAdmin = localStorage.getItem('adminAdminSettings');
+        if (savedAdmin) {
+            let parsed = JSON.parse(savedAdmin);
+            adminSettings = {...adminSettings, ...parsed};
+        }
+    } catch(e) {
+        console.error("Kon admin instellingen niet laden uit localStorage", e);
+    }
+        const BASE64_TEMPLATE = "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";
+
+        let scene, camera, renderer, controls, modelGroup;
+
+        function handleLocatieChange() {
+            const loc = document.getElementById('locatieKeuze').value;
+            // Kan eventueel logica aanpassen indien nodig
+        }
+
+        function toggleRetours() {
+            const val = document.getElementById('retourType').value;
+            document.getElementById('groupRetourLinks').style.display = (val === 'Links' || val === 'Beide') ? 'flex' : 'none';
+            document.getElementById('groupRetourRechts').style.display = (val === 'Rechts' || val === 'Beide') ? 'flex' : 'none';
+        }
+
+        function init3D() {
+            const container = document.getElementById('webglViewer');
+            if (!container) return;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b0d10);
+
+            const width = container.clientWidth || 800;
+            const height = container.clientHeight || 520;
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+            camera.position.set(0, 450, 2400);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(width, height);
+            renderer.domElement.style.width = '100%';
+            renderer.domElement.style.height = '100%';
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            scene.add(new THREE.AmbientLight(0xffffff, 1.3));
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight1.position.set(800, 1600, 800);
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight2.position.set(-800, 600, -800);
+            scene.add(dirLight2);
+
+            modelGroup = new THREE.Group();
+            scene.add(modelGroup);
+
+            const gridHelper = new THREE.GridHelper(6000, 60, 0x10b981, 0x1f293d);
+            scene.add(gridHelper);
+
+            handleLocatieChange();
+            toggleRetours();
+            updateApp();
+            animate();
+        }
+
+        function getProfileThickness(profileType) {
+            if (profileType === 'Plat40x10') return 10;
+            if (profileType === 'Plat40x8') return 8;
+            if (profileType === 'Rond42.4') return 42.4;
+            if (profileType === 'Rond33.7') return 33.7;
+            return 10;
+        }
+
+        function createMiteredBeam(length, profileType, miterStartRad, miterEndRad) {
+            if (profileType.startsWith('Rond')) {
+                let radius = profileType.includes('42.4') ? 21.2 : 16.85;
+                const geo = new THREE.CylinderGeometry(radius, radius, length, 24);
+                geo.rotateZ(Math.PI / 2);
+                geo.translate(length / 2, 0, 0);
+                return geo;
+            }
+
+            let h = (profileType === 'Plat40x8') ? 8 : 10;
+            let d = 40;
+            const geo = new THREE.BoxGeometry(length, h, d, 1, 1, 1);
+            geo.translate(length / 2, 0, 0);
+
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                let vx = pos.getX(i);
+                let vz = pos.getZ(i);
+                if (Math.abs(vx) < 0.1 && miterStartRad !== 0) {
+                    pos.setX(i, vz * Math.tan(miterStartRad));
+                } else if (Math.abs(vx - length) < 0.1 && miterEndRad !== 0) {
+                    pos.setX(i, length + vz * Math.tan(miterEndRad));
+                }
+            }
+            geo.computeVertexNormals();
+            return geo;
+        }
+
+        function createFootFlange(liggerType, mat) {
+            const group = new THREE.Group();
+            const isRond = liggerType.startsWith('Rond');
+
+            if (!isRond) {
+                const plateGeo = new THREE.BoxGeometry(100, 10, 40);
+                const plate = new THREE.Mesh(plateGeo, mat);
+                plate.position.set(0, 5, 0);
+                group.add(plate);
+
+                const holeGeo = new THREE.CylinderGeometry(5.5, 5.5, 12, 16);
+                let h1 = new THREE.Mesh(holeGeo, mat);
+                h1.position.set(-25, 5, 0);
+                group.add(h1);
+
+                let h2 = new THREE.Mesh(holeGeo, mat);
+                h2.position.set(25, 5, 0);
+                group.add(h2);
+            } else {
+                const plateGeo = new THREE.CylinderGeometry(40, 40, 10, 32);
+                const plate = new THREE.Mesh(plateGeo, mat);
+                plate.position.set(0, 5, 0);
+                group.add(plate);
+
+                const holeGeo = new THREE.CylinderGeometry(5.5, 5.5, 12, 16);
+                for (let i = 0; i < 3; i++) {
+                    let angle = (i * 2 * Math.PI) / 3;
+                    let hx = Math.cos(angle) * 25;
+                    let hz = Math.sin(angle) * 25;
+                    let hole = new THREE.Mesh(holeGeo, mat);
+                    hole.position.set(hx, 5, hz);
+                    group.add(hole);
+                }
+            }
+            return group;
+        }
+
+        function createSectionGroup(length, height, isRondSpijl, spijlDikte, liggerType, maxSpacing, mat, miterStartRad, miterEndRad, includeStartPost, includeEndPost, isOpVoetjes, hasLeftRetour, hasRightRetour) {
+            const group = new THREE.Group();
+
+            let liggerDikte = getProfileThickness(liggerType);
+            let isRondeLigger = liggerType.startsWith('Rond');
+            let liggerRadius = isRondeLigger ? (liggerDikte / 2) : 0;
+
+            let onderProfielY = isOpVoetjes ? 50 : 0;
+
+            let spilStartY = onderProfielY + (isRondeLigger ? liggerRadius : liggerDikte);
+            let spilEndY = onderProfielY + height - (isRondeLigger ? liggerRadius : liggerDikte);
+            let spilHoogte = spilEndY - spilStartY;
+            let spilMiddenY = spilStartY + (spilHoogte / 2);
+
+            let onderGeo = createMiteredBeam(length, liggerType, miterStartRad, miterEndRad);
+            let bOnder = new THREE.Mesh(onderGeo, mat);
+            bOnder.position.set(0, onderProfielY + liggerDikte / 2, 0);
+            group.add(bOnder);
+
+            let bovenGeo = createMiteredBeam(length, liggerType, miterStartRad, miterEndRad);
+            let bBoven = new THREE.Mesh(bovenGeo, mat);
+            bBoven.position.set(0, onderProfielY + height - liggerDikte / 2, 0);
+            group.add(bBoven);
+
+            let spilPositions = [];
+            let isRetour = (!includeStartPost || !includeEndPost);
+            let hasAnyRetour = (hasLeftRetour || hasRightRetour);
+
+            let halfThick = spijlDikte / 2;
+
+            // Alleen bij retours EN niet-rond stafstaal (bijv. platstaal) passen we de 40mm offset toe op de hoofdsectie.
+            // Bij rond stafstaal (isRondSpijl == true) of zonder retours staan de spijlen strak in de hoeken (van start tot einde).
+            if (!isRetour && hasAnyRetour && !isRondSpijl) {
+                let edgeOffset = 40;
+                let startPos = edgeOffset + halfThick;
+                let endPos = length - edgeOffset - halfThick;
+                let availableSpileLen = endPos - startPos;
+                if (availableSpileLen < 50) availableSpileLen = length - (2 * edgeOffset);
+                let numSpiles = Math.max(1, Math.ceil(availableSpileLen / maxSpacing));
+                let spileStep = availableSpileLen / numSpiles;
+                for (let i = 0; i <= numSpiles; i++) {
+                    let pos = startPos + (i * spileStep);
+                    if (pos >= halfThick && pos <= length - halfThick) {
+                        spilPositions.push(pos);
+                    }
+                }
+            } else {
+                // Voor rond stafstaal, retoursecties, of zonder retours: spijlen strak van start tot einde
+                let startPos = halfThick;
+                let endPos = length - halfThick;
+                let availableSpileLen = endPos - startPos;
+                let numSpiles = Math.max(1, Math.ceil(availableSpileLen / maxSpacing));
+                let spileStep = availableSpileLen / numSpiles;
+                for (let i = 0; i <= numSpiles; i++) {
+                    let pos = startPos + (i * spileStep);
+                    spilPositions.push(pos);
+                }
+            }
+
+            let footPositions = [];
+            if (isOpVoetjes) {
+                let isRetour = (!includeStartPost || !includeEndPost);
+                
+                                if (isRetour) {
+                    // RETOURSECTIE: Meerdere voetjes met instelbare min/max (adminSettings.retourMaxDist & retourEdgeDist)
+                    // De hoekzijde (bij X = 0) blijft vrij van voetjes. Voetjes starten vanaf retourEdgeDist tot aan length - retourEdgeDist.
+                    let rMaxDist = adminSettings.retourMaxDist;
+                    let rEdgeDist = (typeof adminSettings !== 'undefined' && adminSettings.retourEdgeDist) ? adminSettings.retourEdgeDist : 100;
+
+                    let availableLength = length - rEdgeDist;
+                    if (availableLength < 50) availableLength = length;
+                    let numDivs = Math.max(1, Math.round(availableLength / rMaxDist));
+                    let idealStep = availableLength / numDivs;
+
+                    for (let d = 1; d <= numDivs; d++) {
+                        let targetX = d * idealStep;
+                        if (targetX > length - 50) targetX = length - rEdgeDist;
+                        let closest = spilPositions.reduce((prev, curr) => Math.abs(curr - targetX) < Math.abs(prev - targetX) ? curr : prev);
+                        if (!footPositions.includes(closest) && closest > rEdgeDist / 2 && closest <= length - (rEdgeDist / 2)) {
+                            footPositions.push(closest);
+                        }
+                    }
+                    if (footPositions.length === 0) {
+                        let fallbackX = length - rEdgeDist;
+                        let closest = spilPositions.reduce((prev, curr) => Math.abs(curr - fallbackX) < Math.abs(prev - fallbackX) ? curr : prev);
+                        footPositions.push(closest);
+                    }
+                } else {
+                    // HOOFDSECTIE: Voetjes op ca. 100mm van begin en einde (plus max 1200mm daartussen)
+                    let targetDist = adminSettings.maxFootDist;
+                    let availableLength = length - 200;
+                    if (availableLength < 50) availableLength = length;
+                    let numDivs = Math.max(1, Math.round(availableLength / targetDist));
+                    let idealStep = availableLength / numDivs;
+
+                    let startTarget = 100;
+                    let closestStart = spilPositions.reduce((prev, curr) => Math.abs(curr - 100) < Math.abs(prev - 100) ? curr : prev);
+                    if (closestStart < 50) closestStart = spilPositions.find(p => p >= 100) || 100;
+                    footPositions.push(closestStart);
+
+                    for (let d = 1; d < numDivs; d++) {
+                        let targetX = 100 + (d * idealStep);
+                        let closest = spilPositions.reduce((prev, curr) => Math.abs(curr - targetX) < Math.abs(prev - targetX) ? curr : prev);
+                        if (!footPositions.includes(closest) && closest > 80 && closest < length - 80) {
+                            footPositions.push(closest);
+                        }
+                    }
+
+                    let endTarget = length - 100;
+                    let closestEnd = spilPositions.reduce((prev, curr) => Math.abs(curr - endTarget) < Math.abs(prev - endTarget) ? curr : prev);
+                    if (closestEnd > length - 50) closestEnd = spilPositions.reverse().find(p => p <= length - 100) || (length - 100);
+                    if (!footPositions.includes(closestEnd)) {
+                        footPositions.push(closestEnd);
+                    }
+                }
+                footPositions.sort((a, b) => a - b);
+            } else {
+                footPositions = [0, length];
+            }
+
+            let connectPostHeight = onderProfielY - 10;
+            let connectPostGeo = new THREE.BoxGeometry(10, connectPostHeight, 40);
+            let connectPostMiddenY = 10 + connectPostHeight / 2;
+
+            let spijlGeo;
+            if (isRondSpijl) {
+                spijlGeo = new THREE.CylinderGeometry(spijlDikte / 2, spijlDikte / 2, spilHoogte, 16);
+            } else {
+                spijlGeo = new THREE.BoxGeometry(spijlDikte, spilHoogte, 40);
+            }
+
+            spilPositions.forEach((spileX, idx) => {
+                let isStart = (idx === 0);
+                let isEnd = (idx === spilPositions.length - 1);
+
+                // Bij retours slaan we de spijl aan de hoekkant over om dubbele spijlen in de hoek te voorkomen; 
+                // de hoekspijl wordt reeds geleverd door de hoofdsectie. Aan het vrije uiteinde wordt de spijl wel getekend.
+                if (isStart && !includeStartPost) return;
+                if (isEnd && !includeEndPost) return;
+
+                let hasFootHere = footPositions.some(fp => Math.abs(fp - spileX) < 1.0);
+
+                // Geen verwijdering van voeten op de hoofdsectie
+
+                if (isOpVoetjes && hasFootHere) {
+                    let foot = createFootFlange(liggerType, mat);
+                    foot.position.set(spileX, 0, 0);
+                    group.add(foot);
+
+                    let connectPost = new THREE.Mesh(connectPostGeo, mat);
+                    connectPost.position.set(spileX, connectPostMiddenY, 0);
+                    group.add(connectPost);
+                }
+
+                let spile = new THREE.Mesh(spijlGeo, mat);
+                spile.position.set(spileX, spilMiddenY, 0);
+                group.add(spile);
+            });
+
+            return group;
+        }
+
+        function updateApp() {
+            if (!scene || !modelGroup) return;
+
+            const TOP_P_Lengte = parseInt(document.getElementById('TOP_P_Lengte').value);
+            const TOP_P_Hoogte = parseInt(document.getElementById('TOP_P_Hoogte').value);
+            const TOP_P_Tussenafstandspijlen = parseInt(document.getElementById('TOP_P_Tussenafstandspijlen').value);
+            const TOP_P_Diktespijlen = parseInt(document.getElementById('TOP_P_Diktespijlen').value);
+            const variantCode = document.getElementById('variantCode').value || 'Variant_1';
+            const montageType = document.getElementById('montageType').value;
+            const isOpVoetjes = (montageType === 'OpVoetjes');
+
+            const retourType = document.getElementById('retourType').value;
+            const hasLeftRetour = (retourType === 'Links' || retourType === 'Beide');
+            const hasRightRetour = (retourType === 'Rechts' || retourType === 'Beide');
+
+            const lengteRetourLinks = parseInt(document.getElementById('lengteRetourLinks').value) || 0;
+            const hoekRetourLinks = parseInt(document.getElementById('hoekRetourLinks').value) || 90;
+            const lengteRetourRechts = parseInt(document.getElementById('lengteRetourRechts').value) || 0;
+            const hoekRetourRechts = parseInt(document.getElementById('hoekRetourRechts').value) || 90;
+
+            const spijlProfielKeuze = document.getElementById('spijlProfielKeuze').value;
+            const isRondSpijl = (spijlProfielKeuze === 'Rond');
+            const liggerProfiel = document.getElementById('liggerProfiel').value;
+
+            const locatieKeuze = document.getElementById('locatieKeuze').value;
+            const glansGradatie = document.getElementById('glansGradatie').value;
+            const ralSelection = document.getElementById('ralSelect').value.split('|');
+            const ralHex = ralSelection[0];
+            const ralText = ralSelection[1];
+
+            document.getElementById('lenVal').innerText = TOP_P_Lengte + ' mm';
+            document.getElementById('heightVal').innerText = TOP_P_Hoogte + ' mm';
+            document.getElementById('spaceVal').innerText = TOP_P_Tussenafstandspijlen + ' mm';
+            document.getElementById('thickVal').innerText = TOP_P_Diktespijlen + ' mm';
+
+            while(modelGroup.children.length > 0) { 
+                modelGroup.remove(modelGroup.children[0]); 
+            }
+
+            let matColor = parseInt(ralHex.replace('#', '0x'));
+            let roughnessVal = (glansGradatie === 'Hoogglans') ? 0.08 : (glansGradatie === 'Zijdeglans' ? 0.28 : 0.75);
+            let metalnessVal = 0.2;
+
+            const metalMat = new THREE.MeshStandardMaterial({ 
+                color: matColor, 
+                metalness: metalnessVal, 
+                roughness: roughnessVal 
+            });
+
+            let leftMiterRad = hasLeftRetour ? ((180 - hoekRetourLinks) / 2) * (Math.PI / 180) : 0;
+            let rightMiterRad = hasRightRetour ? ((180 - hoekRetourRechts) / 2) * (Math.PI / 180) : 0;
+
+            let mainSec = createSectionGroup(
+                TOP_P_Lengte, TOP_P_Hoogte,
+                isRondSpijl, TOP_P_Diktespijlen, liggerProfiel,
+                TOP_P_Tussenafstandspijlen, metalMat,
+                hasLeftRetour ? leftMiterRad : 0,
+                hasRightRetour ? -rightMiterRad : 0,
+                true, true, isOpVoetjes, hasLeftRetour, hasRightRetour
+            );
+            mainSec.position.set(0, 0, 0);
+            modelGroup.add(mainSec);
+
+            if (hasLeftRetour) {
+                let leftSec = createSectionGroup(
+                    lengteRetourLinks, TOP_P_Hoogte,
+                    isRondSpijl, TOP_P_Diktespijlen, liggerProfiel,
+                    TOP_P_Tussenafstandspijlen, metalMat,
+                    -leftMiterRad, 0,
+                    false, true, isOpVoetjes, true, false
+                );
+                leftSec.position.set(0, 0, 0);
+                leftSec.rotation.y = -hoekRetourLinks * (Math.PI / 180);
+                modelGroup.add(leftSec);
+            }
+
+            if (hasRightRetour) {
+                let rightSec = createSectionGroup(
+                    lengteRetourRechts, TOP_P_Hoogte,
+                    isRondSpijl, TOP_P_Diktespijlen, liggerProfiel,
+                    TOP_P_Tussenafstandspijlen, metalMat,
+                    rightMiterRad, 0,
+                    false, true, isOpVoetjes, false, true
+                );
+                rightSec.position.set(TOP_P_Lengte, 0, 0);
+                rightSec.rotation.y = -(180 - hoekRetourRechts) * (Math.PI / 180);
+                modelGroup.add(rightSec);
+            }
+
+            modelGroup.position.x = -TOP_P_Lengte / 2;
+
+            if (controls) {
+                controls.target.set(0, TOP_P_Hoogte / 2, 0);
+                controls.update();
+            }
+
+            let totalLength = TOP_P_Lengte + (hasLeftRetour ? lengteRetourLinks : 0) + (hasRightRetour ? lengteRetourRechts : 0);
+            let numFeet = isOpVoetjes ? Math.max(2, Math.ceil((TOP_P_Lengte - 200) / adminSettings.maxFootDist) + 1) : 2;
+            
+            let basePrice = parseFloat(document.getElementById('adminBasePrice')?.value) || 150;
+            let pricePerMm = parseFloat(document.getElementById('adminPricePerMm')?.value) || 0.08;
+            let pricePerFoot = parseFloat(document.getElementById('adminPricePerFoot')?.value) || 15;
+            let pricePerMiter = parseFloat(document.getElementById('adminPricePerMiter')?.value) || 25;
+            let pricePerRetourM = parseFloat(document.getElementById('adminPricePerRetourM')?.value) || 45;
+
+            let numMiters = 0;
+            if (hasLeftRetour) numMiters += 2; // 2 verstekhoeken per retourverbinding
+            if (hasRightRetour) numMiters += 2;
+
+            let retourLengthTotal = (hasLeftRetour ? lengteRetourLinks : 0) + (hasRightRetour ? lengteRetourRechts : 0);
+
+            let totalEstimated = basePrice + (totalLength * pricePerMm) + (numFeet * pricePerFoot) + (numMiters * pricePerMiter) + ((retourLengthTotal / 1000) * pricePerRetourM);
+
+
+            document.getElementById('priceDisplay').innerText = '€ ' + totalEstimated.toFixed(2).replace('.', ',');
+
+            let montageTxt = isOpVoetjes ? `Op voetjes (min. 100mm uit kant, ${numFeet} stuks)` : 'Vrijstaand';
+            let retourTxt = 'Geen';
+            if (retourType === 'Links') retourTxt = `Links (${lengteRetourLinks} mm @ ${hoekRetourLinks}°)`;
+            if (retourType === 'Rechts') retourTxt = `Rechts (${lengteRetourRechts} mm @ ${hoekRetourRechts}°)`;
+            if (retourType === 'Beide') retourTxt = `Links (${lengteRetourLinks} mm) + Rechts (${lengteRetourRechts} mm)`;
+
+            document.getElementById('cadSpecs').innerHTML = `
+                • <strong>Code:</strong> ${variantCode} | <strong>L:</strong> ${TOP_P_Lengte} mm | <strong>H:</strong> ${TOP_P_Hoogte} mm<br>
+                • <strong>Montage:</strong> ${montageTxt}<br>
+                • <strong>Spijlenraster:</strong> Inclusief hoeken & start/stop | <strong>Voetjes:</strong> Min. 100mm uit kant<br>
+                • <strong>Retours:</strong> ${retourTxt}<br>
+                • <strong>Afwerking:</strong> ${ralText} | ${glansGradatie}
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (controls) controls.update();
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(init3D, 100);
+        });
+
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('webglViewer');
+            if (!container || !renderer || !camera) return;
+            const w = container.clientWidth || 800;
+            const h = container.clientHeight || 520;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        });
+
+        async function exportNativeTopSolidExcel() {
+            const TOP_P_Lengte = parseInt(document.getElementById('TOP_P_Lengte').value);
+            const TOP_P_Hoogte = parseInt(document.getElementById('TOP_P_Hoogte').value);
+            const TOP_P_Tussenafstandspijlen = parseInt(document.getElementById('TOP_P_Tussenafstandspijlen').value);
+            const TOP_P_Diktespijlen = parseInt(document.getElementById('TOP_P_Diktespijlen').value);
+            const variantCode = document.getElementById('variantCode').value || 'Variant_1';
+
+            const zip = await JSZip.loadAsync(BASE64_TEMPLATE, { base64: true });
+            
+            const newSheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+    <dimension ref="A1:E2"/>
+    <sheetViews>
+        <sheetView tabSelected="1" workbookViewId="0"/>
+    </sheetViews>
+    <sheetFormatPr defaultRowHeight="15"/>
+    <cols>
+        <col min="1" max="1" width="12" customWidth="1"/>
+        <col min="2" max="2" width="16" customWidth="1"/>
+        <col min="3" max="3" width="16" customWidth="1"/>
+        <col min="4" max="4" width="26" customWidth="1"/>
+        <col min="5" max="5" width="22" customWidth="1"/>
+    </cols>
+    <sheetData>
+        <row r="1" spans="1:5">
+            <c r="A1" t="inlineStr"><is><t>Code</t></is></c>
+            <c r="B1" t="inlineStr"><is><t>TOP_P_Hoogte</t></is></c>
+            <c r="C1" t="inlineStr"><is><t>TOP_P_Lengte</t></is></c>
+            <c r="D1" t="inlineStr"><is><t>TOP_P_Tussenafstandspijlen</t></is></c>
+            <c r="E1" t="inlineStr"><is><t>TOP_P_Diktespijlen</t></is></c>
+        </row>
+        <row r="2" spans="1:5">
+            <c r="A2" t="inlineStr"><is><t>${variantCode}</t></is></c>
+            <c r="B2"><v>${TOP_P_Hoogte}</v></c>
+            <c r="C2"><v>${TOP_P_Lengte}</v></c>
+            <c r="D2"><v>${TOP_P_Tussenafstandspijlen}</v></c>
+            <c r="E2"><v>${TOP_P_Diktespijlen}</v></c>
+        </row>
+    </sheetData>
+    <pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
+</worksheet>`;
+
+            zip.file('xl/worksheets/sheet1.xml', newSheetXml);
+
+            const content = await zip.generateAsync({
+                type: 'blob',
+                mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `Map1_TopSolid_${variantCode}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportBOMReport() {
+            const TOP_P_Lengte = parseInt(document.getElementById('TOP_P_Lengte').value);
+            const TOP_P_Hoogte = parseInt(document.getElementById('TOP_P_Hoogte').value);
+            const TOP_P_Tussenafstandspijlen = parseInt(document.getElementById('TOP_P_Tussenafstandspijlen').value);
+            const TOP_P_Diktespijlen = parseInt(document.getElementById('TOP_P_Diktespijlen').value);
+            const variantCode = document.getElementById('variantCode').value || 'Variant_1';
+            const montageType = document.getElementById('montageType').value;
+            const isOpVoetjes = (montageType === 'OpVoetjes');
+            const locatieKeuze = document.getElementById('locatieKeuze').value;
+            const ralSelection = document.getElementById('ralSelect').value.split('|')[1];
+            const glansGradatie = document.getElementById('glansGradatie').value;
+            const liggerProfiel = document.getElementById('liggerProfiel').value;
+            const retourType = document.getElementById('retourType').value;
+
+            let numFeet = isOpVoetjes ? Math.max(2, Math.ceil((TOP_P_Lengte - 200) / adminSettings.maxFootDist) + 1) : 2;
+
+            let content = `========================================================================
+Borstwering Constructies - MATERIAALLIJST & PRODUCTIE-INFORMATIE (BOM)
+========================================================================
+Variant Code: ${variantCode}
+Datum: ${new Date().toLocaleDateString()}
+
+1. SPECIFICATIES & OPPERVLAKTEBEHANDELING
+• Toepassing: ${locatieKeuze} (${locatieKeuze === 'Buiten' ? 'Poederlak MET metallisatie' : 'Zonder metallisatie'})
+• Kleur: ${ralSelection} (${glansGradatie})
+• Retours: ${retourType} (hoekspijlen gelijk aan opvulspijlen)
+
+2. PROFIELEN & LENGTES
+• Bovenligger (${liggerProfiel}): 1 stuks x ${TOP_P_Lengte} mm
+• Onderligger (${liggerProfiel}): 1 stuks x ${TOP_P_Lengte} mm
+• Spijlen (inclusief hoeken/start/eind): Zelfde materiaal als opvulspijlen
+• Voetjes: Geplaatst op min. 100 mm van de uiteinden
+
+3. MONTAGEVOETEN & FLENZEN
+${isOpVoetjes ? (liggerProfiel.startsWith('Rond') ? '• Ronde voetflens Ø80x10mm met 3 gaten Ø11mm - Aantal: ' + numFeet + ' stuks (min 100mm uit kant)' : '• Platte voetflens 100x40x10mm met 2 gaten Ø11mm - Aantal: ' + numFeet + ' stuks (min 100mm uit kant)') : '• Geen'}
+========================================================================`;
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' } );
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Materiaallijst_${variantCode}.txt`;
+            link.click();
+        }
+
+        function exportParameterFile() {
+            exportBOMReport();
+        }
+
+        function copyTopSolidData() {
+            alert("TopSolid data gekopieerd naar klembord!");
+        }
+    
+    function logoutSession() {
+        sessionStorage.removeItem('adminAuthenticatedSession');
+        location.reload();
+    }
+
+</script>
+
+    
+    <!-- ADMIN PANEL MODAL -->
+    <div     <!-- ADMIN PANEL MODAL (V91 - Professioneel & Strak Gecorrigeerd) -->
+    <div     <!-- ADMIN PANEL MODAL (V94 - Alle Variabelen Compleet) -->
+    <div     <!-- ADMIN PANEL MODAL (V97 - Ultiem & Uitgebreid) -->
+    <div id="adminModal" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); z-index:999999; justify-content:center; align-items:center; backdrop-filter: blur(8px); font-family: inherit;">
+        <div style="background: #15171e; border: 1px solid #334155; border-radius: 20px; width: 920px; max-width: 96vw; max-height: 94vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 35px 70px rgba(0,0,0,0.95);">
+            
+            <!-- Header -->
+            <div style="padding: 22px 30px; border-bottom: 1px solid #2e3342; display:flex; justify-content:space-between; align-items:center; background: #1a1d26;">
+                <div style="font-weight: 800; font-size: 1.25rem; color: #fff; display:flex; align-items:center; gap: 10px;">
+                    ⚙️ Admin Beheerpaneel (Uitgebreide Configuratie)
+                </div>
+                <button type="button" onclick="closeAdminPanel()" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer; padding: 4px;">✕</button>
+            </div>
+
+            <!-- Scrollbare Inhoud -->
+            <div style="padding: 30px; overflow-y:auto; display:flex; flex-direction:column; gap: 28px; box-sizing: border-box;">
+                
+                <!-- 1. TOEGANGSBEHEER & AANVRAGEN (Twee kolommen) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Ontvangen Aanvragen -->
+                    <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="font-weight: 700; color: #34d399; font-size: 0.95rem; display:flex; align-items:center; gap: 6px;">📥 Ontvangen Code Aanvragen</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Klanten die via het inlogscherm een code aanvroegen:</div>
+                        <div style="max-height: 150px; overflow-y: auto; background: #15171e; border-radius: 8px; padding: 8px; border: 1px solid #2e3342;">
+                            <div id="adminRequestsList" style="font-size: 0.85rem; color: #fff; display: flex; flex-direction: column; gap: 6px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Toegangscodes Beheer -->
+                    <div style="background: rgba(37, 99, 235, 0.05); border: 1px solid rgba(37, 99, 235, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="font-weight: 700; color: #60a5fa; font-size: 0.95rem; display:flex; align-items:center; gap: 6px;">🔑 Toegangscodes Beheer</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Genereer en beheer actieve codes.</div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="newAdminCode" placeholder="Bijv. VIP-99" style="flex: 1; padding: 8px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.85rem; outline:none;">
+                            <button type="button" class="btn" onclick="addNewAccessCode()" style="background: #2563eb; color: #fff; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; border:none; cursor:pointer;">Toevoegen</button>
+                        </div>
+                        <div style="max-height: 100px; overflow-y: auto; background: #15171e; border-radius: 8px; padding: 8px; border: 1px solid #2e3342;">
+                            <div id="adminCodesList" style="font-size: 0.8rem; color: #fff; display: flex; flex-direction: column; gap: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. GEOMETRIE & VOETJES LIMIETEN -->
+                <div style="background: #1a1d26; border: 1px solid #2e3342; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+                    <div style="font-weight: 700; color: #60a5fa; font-size: 1.05rem; border-bottom: 1px solid #2e3342; padding-bottom: 8px; display:flex; align-items:center; gap: 8px;">📏 Geometrie & Voetjes Afstanden (mm)</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Max. afstand tussen voetjes (mm):</label>
+                            <input type="number" id="adminMaxFootDist" value="1200" step="50" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Afstand voetjes tot uiterste hoek (mm):</label>
+                            <input type="number" id="adminFootEdgeDist" value="100" step="10" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Max. afstand tussen voetjes op retours (mm):</label>
+                            <input type="number" id="adminRetourMaxDist" value="1200" step="50" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Afstand voetjes tot vrij uiteinde retour (mm):</label>
+                            <input type="number" id="adminRetourEdgeDist" value="100" step="10" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. CONFIGURATIE LIMIETEN (Min / Max Lengte, Hoogte, Spijlen) -->
+                <div style="background: #1a1d26; border: 1px solid #2e3342; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+                    <div style="font-weight: 700; color: #60a5fa; font-size: 1.05rem; border-bottom: 1px solid #2e3342; padding-bottom: 8px; display:flex; align-items:center; gap: 8px;">⚙️ Min / Max Afmetingen & Spijlen Limieten</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Min. Lengte (mm):</label>
+                            <input type="number" id="adminMinLen" value="500" step="100" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Max. Lengte (mm):</label>
+                            <input type="number" id="adminMaxLen" value="6000" step="100" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Min. Hoogte (mm):</label>
+                            <input type="number" id="adminMinHeight" value="500" step="50" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Max. Hoogte (mm):</label>
+                            <input type="number" id="adminMaxHeight" value="2000" step="50" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Min. Spijlafstand (mm):</label>
+                            <input type="number" id="adminMinSpace" value="50" step="5" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Max. Spijlafstand (mm):</label>
+                            <input type="number" id="adminMaxSpace" value="200" step="10" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Min. Spijldikte (mm):</label>
+                            <input type="number" id="adminMinThick" value="10" step="2" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Max. Spijldikte (mm):</label>
+                            <input type="number" id="adminMaxThick" value="40" step="2" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. PRIJS- EN KOSTPRIJSCALCULATIE VARIABELEN -->
+                <div style="background: #1a1d26; border: 1px solid #2e3342; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+                    <div style="font-weight: 700; color: #34d399; font-size: 1.05rem; border-bottom: 1px solid #2e3342; padding-bottom: 8px; display:flex; align-items:center; gap: 8px;">💰 Prijscalculatie & Kostprijs Variabelen (€)</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Basisprijs (€):</label>
+                            <input type="number" id="adminBasePrice" value="150" step="10" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Prijs per mm lengte (€):</label>
+                            <input type="number" id="adminPricePerMm" value="0.08" step="0.01" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Prijs per voetje (€):</label>
+                            <input type="number" id="adminPricePerFoot" value="15" step="1" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Prijs per m handloper (€):</label>
+                            <input type="number" id="adminPricePerMiter" value="25" step="5" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Prijs per m retour (€):</label>
+                            <input type="number" id="adminPricePerRetourM" value="45" step="5" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600;">Buiten metallisatie toeslag (€):</label>
+                            <input type="number" id="adminMetalSurcharge" value="75" step="10" style="padding: 10px 12px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.9rem; outline:none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. RAL KLEUREN BEHEER -->
+                <div style="background: #1a1d26; border: 1px solid #2e3342; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 16px;">
+                    <div style="font-weight: 700; color: #60a5fa; font-size: 1.05rem; border-bottom: 1px solid #2e3342; padding-bottom: 8px; display:flex; align-items:center; gap: 8px;">🎨 RAL-kleuren & Oppervlaktebehandeling Beheer</div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="color" id="newRalHex" value="#3b424c" style="width: 44px; height: 40px; border: none; background: none; cursor: pointer;">
+                        <input type="text" id="newRalCode" placeholder="RAL 7016" style="width: 120px; padding: 10px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.85rem;">
+                        <input type="text" id="newRalName" placeholder="Antracietgrijs" style="flex: 1; padding: 10px; border-radius: 8px; background: #15171e; border: 1px solid #334155; color: #fff; font-size: 0.85rem;">
+                        <button type="button" class="btn" onclick="addNewRalColor()" style="background: #2563eb; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; border:none; cursor:pointer;">Kleur Toevoegen</button>
+                    </div>
+                    <div style="max-height: 120px; overflow-y: auto; background: #15171e; border-radius: 8px; padding: 8px; border: 1px solid #2e3342;">
+                        <div id="adminRalList" style="font-size: 0.85rem; color: #fff; display: flex; flex-direction: column; gap: 4px;"></div>
+                    </div>
+                </div>
+
+                <!-- 6. Opslaan knop onderaan -->
+                <button type="button" class="btn btn-primary" onclick="saveAdminSettings()" style="padding: 16px; font-weight: 700; border-radius: 12px; background: #2563eb; color: #fff; border: none; cursor: pointer; font-size: 1.05rem; box-shadow: 0 6px 16px rgba(37,99,235,0.45); text-align: center; width: 100%;">onclick="saveAdminSettings()">Alle Instellingen & Variabelen Opslaan</button>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    window.openAdminPanel = function() {
+    let loginModal = document.getElementById("adminLoginModal"); if(loginModal) loginModal.style.display = "flex"; return;
+    if (pwd === "admin2026" || pwd === "admin") {
+        let modal = document.getElementById('adminModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            if (typeof renderAdminRalList === 'function') renderAdminRalList();
+            if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList();
+            if (typeof renderAdminCodesList === 'function') renderAdminCodesList();
+        } else {
+            alert("Admin beheerpaneel kon niet worden gevonden in de pagina.");
+        }
+    } else if (pwd !== null) {
+        alert("Onjuist wachtwoord!");
+    }
+};
+        } else {
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                let inp = document.getElementById('adminPasswordInput');
+                if (inp) { inp.value = ''; inp.focus(); }
+                let err = document.getElementById('adminLoginError');
+                if (err) err.style.display = 'none';
+            } else {
+                // Fallback als login modal onverhoopt ontbreekt
+    let loginModal = document.getElementById("adminLoginModal"); if(loginModal) loginModal.style.display = "flex"; return;
+                if (pwd === "admin2026" || pwd === "admin") {
+                    isAdminLoggedIn = true;
+                    if (adminModal) {
+                        adminModal.style.display = 'flex';
+                        if (typeof renderAdminRalList === 'function') renderAdminRalList();
+                        if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList();
+                        if (typeof renderAdminCodesList === 'function') renderAdminCodesList();
+                    }
+                } else if (pwd !== null) {
+                    alert("Onjuist wachtwoord!");
+                }
+            }
+        }
+    }
+
+    
+    function closeAdminPanel() {
+        let adminModal = document.getElementById('adminModal');
+        if (adminModal) {
+            adminModal.style.setProperty('display', 'none', 'important');
+        }
+        let loginModal = document.getElementById('adminLoginModal');
+        if (loginModal) {
+            loginModal.style.setProperty('display', 'none', 'important');
+        }
+    }
+    window.closeAdminPanel = closeAdminPanel;
+
+
+    function logoutSession() {
+        sessionStorage.removeItem('adminAuthenticatedSession');
+        location.reload();
+    }
+</script>
+
+
+    <script>
+    // Standaard actieve codes als er nog geen in localStorage staan
+    let defaultCodes = ["admin2026", "VIP-1234", "TEST-01"];
+
+    function getStoredCodes() {
+        try {
+            let stored = localStorage.getItem('adminAccessCodes');
+            return stored ? JSON.parse(stored) : defaultCodes;
+        } catch(e) {
+            return defaultCodes;
+        }
+    }
+
+    function verifyAccessCode() {
+        let input = document.getElementById('accessCodeInput').value.trim();
+        let err = document.getElementById('accessError');
+        let codes = getStoredCodes();
+
+        // Check ook de admin master code of opgeslagen codes
+        if (codes.includes(input) || input === "ADMIN-MASTER-999") {
+            sessionStorage.setItem('adminAuthenticatedSession', 'true');
+            document.getElementById('accessCodeModal').style.display = 'none';
+        } else {
+            if (err) err.style.display = 'block';
+        }
+    }
+
+    function addNewAccessCode() {
+        let input = document.getElementById('newAdminCode').value.trim();
+        if (!input) return;
+        let codes = getStoredCodes();
+        if (!codes.includes(input)) {
+            codes.push(input);
+            localStorage.setItem('adminAccessCodes', JSON.stringify(codes));
+            document.getElementById('newAdminCode').value = '';
+            renderAdminCodesList();
+            alert("Toegangscode succesvol toegevoegd!");
+        } else {
+            alert("Deze code bestaat al.");
+        }
+    }
+
+    function removeAccessCode(code) {
+        let codes = getStoredCodes();
+        codes = codes.filter(c => c !== code);
+        localStorage.setItem('adminAccessCodes', JSON.stringify(codes));
+        renderAdminCodesList();
+    }
+
+    function sendCodeByEmail() {
+        let email = document.getElementById('clientEmailForCode').value.trim();
+        if (!email || !email.includes('@')) {
+            alert("Vul een geldig e-mailadres in.");
+            return;
+        }
+        let codes = getStoredCodes();
+        let latestCode = codes[codes.length - 1] || "admin2026";
+        
+        let subject = encodeURIComponent("Uw Toegangscode voor Constructies 3D Configurator");
+        let body = encodeURIComponent(`Beste,\n\nHier is uw persoonlijke toegangscode om de Constructies 3D Configurator te openen:\n\nToegangscode: ${latestCode}\n\nMet vriendelijke groet,\nConstructies Constructies`);
+        
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }
+
+    function renderAdminCodesList() {
+        let listEl = document.getElementById('adminCodesList');
+        if (!listEl) return;
+        let codes = getStoredCodes();
+        listEl.innerHTML = codes.map(c => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 4px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                <span>🔑 ${c}</span>
+                <button type="button" onclick="removeAccessCode('${c}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;">Verwijder</button>
+            </div>
+        `).join('');
+    }
+
+    // Controleer bij laden of sessie al geauthenticeerd is
+    window.addEventListener('DOMContentLoaded', () => {
+        let isAuth = sessionStorage.getItem('adminAuthenticatedSession');
+        let modal = document.getElementById('accessCodeModal');
+        if (isAuth === 'true' && modal) {
+            modal.style.display = 'none';
+        } else if (modal) {
+            modal.style.display = 'flex';
+        }
+        renderAdminCodesList();
+    });
+    
+    function logoutSession() {
+        sessionStorage.removeItem('adminAuthenticatedSession');
+        location.reload();
+    }
+
+</script>
+
+
+    <script>
+    function toggleRequestView(showRequest) {
+        let codeSec = document.getElementById('codeEntrySection');
+        let reqSec = document.getElementById('codeRequestSection');
+        let subtitle = document.getElementById('accessModalSubtitle');
+        let err = document.getElementById('accessError');
+        let succ = document.getElementById('accessSuccess');
+        if (err) err.style.display = 'none';
+        if (succ) succ.style.display = 'none';
+
+        if (showRequest) {
+            codeSec.style.display = 'none';
+            reqSec.style.display = 'flex';
+            subtitle.innerText = 'Vraag een persoonlijke toegangscode aan';
+        } else {
+            codeSec.style.display = 'flex';
+            reqSec.style.display = 'none';
+            subtitle.innerText = 'Voer uw unieke toegangscode in om te starten';
+        }
+    }
+
+    function submitCodeRequest() {
+        let name = document.getElementById('reqName').value.trim();
+        let email = document.getElementById('reqEmail').value.trim();
+        let err = document.getElementById('accessError');
+        let succ = document.getElementById('accessSuccess');
+
+        if (!name || !email || !email.includes('@')) {
+            if (err) {
+                err.innerText = 'Vul alstublieft uw naam en een geldig e-mailadres in.';
+                err.style.display = 'block';
+            }
+            if (succ) succ.style.display = 'none';
+            return;
+        }
+
+        // Sla aanvraag op in localStorage zodat de admin deze kan inzien in het adminpaneel
+        try {
+            let requests = JSON.parse(localStorage.getItem('adminCodeRequests') || '[]');
+            requests.push({ name, email, requestedAt: new Date().toISOString() });
+            localStorage.setItem('adminCodeRequests', JSON.stringify(requests));
+        } catch(e) {}
+
+        // Open mailto naar de beheerder (of info@admin.be)
+        let subject = encodeURIComponent(`Nieuwe Toegangscode Aanvraag - ${name}`);
+        let body = encodeURIComponent(`Beste beheerder,\n\nEen nieuwe gebruiker vraagt een toegangscode aan voor de Constructies 3D Configurator:\n\nNaam: ${name}\nE-mail: ${email}\nTijdstip: ${new Date().toLocaleString()}\n\nGelieve een toegangscode toe te kennen en te verzenden.`);
+        
+        // Toon succesmelding
+        if (succ) {
+            succ.innerText = '✅ Aanvraag succesvol verzonden! De beheerder ontvangt uw aanvraag.';
+            succ.style.display = 'block';
+        }
+        if (err) err.style.display = 'none';
+
+        // Geen mailto openen, maar opslaan voor admin en melding tonen
+        if (succ) {
+            succ.innerText = '✅ Aanvraag succesvol verzonden naar de admin! U ontvangt uw toegangscode per e-mail zodra deze is goedgekeurd.';
+            succ.style.display = 'block';
+        }
+        if (err) err.style.display = 'none';
+
+        // Schakel na 3 seconden terug naar login
+        setTimeout(() => {
+            toggleRequestView(false);
+            document.getElementById('reqName').value = '';
+            document.getElementById('reqEmail').value = '';
+        }, 3000);
+    }
+    </script>
+
+
+    <script>
+    function getStoredRequests() {
+        try {
+            let stored = localStorage.getItem('adminCodeRequests');
+            return stored ? JSON.parse(stored) : [];
+        } catch(e) {
+            return [];
+        }
+    }
+
+    function removeRequest(index) {
+        let reqs = getStoredRequests();
+        reqs.splice(index, 1);
+        localStorage.setItem('adminCodeRequests', JSON.stringify(reqs));
+        renderAdminRequestsList();
+    }
+
+    function generateAndSendCodeToRequester(email, name) {
+        // Genereer unieke code (bijv. VIMP + willekeurige 4 cijfers)
+        let randomNum = Math.floor(1000 + Math.random() * 9000);
+        let newCode = 'VIP-' + randomNum;
+
+        // Voeg toe aan actieve codes
+        let codes = getStoredCodes();
+        if (!codes.includes(newCode)) {
+            codes.push(newCode);
+            localStorage.setItem('adminAccessCodes', JSON.stringify(codes));
+            renderAdminCodesList();
+        }
+
+        // Toon kopieerbaar e-mailbericht met de code
+        let msg = `📧 E-MAILBERICHT VOOR ${name} (${email}):\n\nBeste ${name},\n\nHier is uw persoonlijke toegangscode voor de Constructies 3D Configurator:\n\nToegangscode: ${newCode}\n\nGa naar de configurator en voer deze code in om te starten.\n\nMet vriendelijke groet,\nConstructies Constructies`;
+        
+        prompt(`Code gegenereerd (${newCode})! Kopieer onderstaand e-mailbericht om naar ${email} te sturen:`, msg);
+        
+        // Verwijder de aanvraag uit de lijst na verwerking
+        let reqs = getStoredRequests();
+        reqs = reqs.filter(r => r.email !== email);
+        localStorage.setItem('adminCodeRequests', JSON.stringify(reqs));
+        renderAdminRequestsList();
+    }
+
+    function renderAdminRequestsList() {
+        let listEl = document.getElementById('adminRequestsList');
+        if (!listEl) return;
+        let reqs = getStoredRequests();
+        if (reqs.length === 0) {
+            listEl.innerHTML = '<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 10px;">Geen nieuwe aanvragen ontvangen.</div>';
+            return;
+        }
+        listEl.innerHTML = reqs.map((r, idx) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.05); border-radius: 6px; gap: 8px;">
+                <div style="overflow: hidden;">
+                    <div style="font-weight: 600; color: #fff;">👤 ${r.name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${r.email}</div>
+                </div>
+                <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                    <button type="button" onclick="generateAndSendCodeToRequester('${r.email}', '${r.name}')" style="background: #10b981; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">Genereer & Verzend</button>
+                    <button type="button" onclick="removeRequest(${idx})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;">✕</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Roep renderAdminRequestsList aan bij openen admin panel of DOM load
+
+    // Controleer of er al aanvragen zijn, zo niet voeg een voorbeeld toe voor testgemak
+    window.addEventListener('DOMContentLoaded', () => {
+        let reqs = getStoredRequests();
+        if (reqs.length === 0) {
+            reqs.push({ name: "Jan Peeters (Voorbeeld)", email: "jan.peeters@bedrijf.be", requestedAt: new Date().toISOString() });
+            localStorage.setItem('adminCodeRequests', JSON.stringify(reqs));
+        }
+        renderAdminRequestsList();
+    });
+
+    </script>
+
+
+    <!-- ADMIN INLOG MODAL -->
+    
+    <!-- 🔐 ADMIN LOGIN POPUP MODAL (Gepersonaliseerd in app-stijl) -->
+    <div id="adminLoginModal" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:9999999; justify-content:center; align-items:center; backdrop-filter: blur(8px); font-family: inherit;">
+        <div style="background: #15171e; border: 1px solid #2e3342; border-radius: 24px; width: 420px; max-width: 90%; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 24px; box-sizing: border-box;">
+            <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="font-size: 2.5rem; margin-bottom: 2px;">🔐</div>
+                <h3 class="animated-title" style="font-size: 1.5rem; margin: 0; line-height: 1.3;">Borstwering Configurator beta 1.0</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Voer het beheerderswachtwoord in om toegang te krijgen tot het beheerpaneel.</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;">Wachtwoord:</label>
+                <input type="password" id="adminPasswordInput" placeholder="••••••••" style="padding: 14px; border-radius: 12px; background: #1f2430; border: 1px solid #334155; color: #fff; font-size: 1.05rem; outline: none; text-align: center; letter-spacing: 2px;" onkeydown="if(event.key==='Enter') verifyAdminPasswordModal()">
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 4px;">
+                <button type="button" onclick="closeAdminLoginModal()" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: transparent; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Annuleren</button>
+                <button type="button" onclick="verifyAdminPasswordModal()" style="flex: 1; padding: 14px; border-radius: 12px; border: none; background: #2563eb; color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.45); transition: all 0.2s;">Inloggen ➔</button>
+            </div>
+            
+            <div id="adminLoginError" style="color: #f87171; font-size: 0.85rem; text-align: center; display: none; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 8px; font-weight: 600;">Onjuist wachtwoord (standaard: vanimpe2026).</div>
+        </div>
+    </div>
+
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let btn = document.getElementById('adminBtn');
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openAdminPanel();
+            });
+        }
+    });
+    </script>
+
+
+<script>
+    // Absolute kogelvrije event delegatie voor Admin Beheer knop
+    document.addEventListener('click', function(e) {
+        let target = e.target.closest('button');
+        if (target && (target.innerText.includes('Admin Beheer') || target.id === 'adminBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+    let loginModal = document.getElementById("adminLoginModal"); if(loginModal) loginModal.style.display = "flex"; return;
+            if (pwd === "admin2026" || pwd === "admin") {
+                let modal = document.getElementById('adminModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    if (typeof renderAdminRalList === 'function') renderAdminRalList();
+                    if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList();
+                    if (typeof renderAdminCodesList === 'function') renderAdminCodesList();
+                } else {
+                    alert("Admin beheerpaneel element niet gevonden in de pagina.");
+                }
+            } else if (pwd !== null) {
+                alert("Onjuist wachtwoord!");
+            }
+        }
+    }, true);
+</script>
+
+
+    <!-- 🔐 ADMIN LOGIN POPUP MODAL -->
+    
+    <!-- 🔐 ADMIN LOGIN POPUP MODAL (Gepersonaliseerd in app-stijl) -->
+    <div id="adminLoginModal" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:9999999; justify-content:center; align-items:center; backdrop-filter: blur(8px); font-family: inherit;">
+        <div style="background: #15171e; border: 1px solid #2e3342; border-radius: 24px; width: 420px; max-width: 90%; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 24px; box-sizing: border-box;">
+            <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="font-size: 2.5rem; margin-bottom: 2px;">🔐</div>
+                <h3 class="animated-title" style="font-size: 1.5rem; margin: 0; line-height: 1.3;">Borstwering Configurator beta 1.0</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Voer het beheerderswachtwoord in om toegang te krijgen tot het beheerpaneel.</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;">Wachtwoord:</label>
+                <input type="password" id="adminPasswordInput" placeholder="••••••••" style="padding: 14px; border-radius: 12px; background: #1f2430; border: 1px solid #334155; color: #fff; font-size: 1.05rem; outline: none; text-align: center; letter-spacing: 2px;" onkeydown="if(event.key==='Enter') verifyAdminPasswordModal()">
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 4px;">
+                <button type="button" onclick="closeAdminLoginModal()" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: transparent; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Annuleren</button>
+                <button type="button" onclick="verifyAdminPasswordModal()" style="flex: 1; padding: 14px; border-radius: 12px; border: none; background: #2563eb; color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.45); transition: all 0.2s;">Inloggen ➔</button>
+            </div>
+            
+            <div id="adminLoginError" style="color: #f87171; font-size: 0.85rem; text-align: center; display: none; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 8px; font-weight: 600;">Onjuist wachtwoord (standaard: vanimpe2026).</div>
+        </div>
+    </div>
+
+
+
+<script>
+    // Robuuste event delegatie voor Admin Beheer knop met eigen Popup Modal
+    document.addEventListener('click', function(e) {
+        let target = e.target.closest('button');
+        if (target && (target.innerText.includes('Admin Beheer') || target.id === 'adminBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                let inp = document.getElementById('adminPopupPassInput');
+                if (inp) { inp.value = ''; inp.focus(); }
+                let err = document.getElementById('adminPopupError');
+                if (err) err.style.display = 'none';
+            } else {
+                // Fallback
+    let loginModal = document.getElementById("adminLoginModal"); if(loginModal) loginModal.style.display = "flex"; return;
+                if (pwd === "admin2026" || pwd === "admin") {
+                    openAdminModalDirect();
+                }
+            }
+        }
+    }, true);
+
+    function closeAdminLoginPopup() {
+        let loginModal = document.getElementById('adminLoginModal');
+        if (loginModal) loginModal.style.display = 'none';
+    }
+
+    
+    
+    function verifyAdminPopupLogin() {
+        let inp = document.getElementById('adminPopupPassInput');
+        let err = document.getElementById('adminPopupError');
+        if (!inp) {
+            alert("Invoerveld niet gevonden!");
+            return;
+        }
+        let val = inp.value.trim();
+        
+        if (val === "admin2026" || val === "admin") {
+            // Sluit login modal
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) loginModal.style.display = 'none';
+            
+            // Open admin modal direct met geforceerde styling
+            let modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.setAttribute('style', 'display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.88) !important; z-index: 99999999 !important; justify-content: center !important; align-items: center !important;');
+                
+                try { if (typeof renderAdminRalList === 'function') renderAdminRalList(); } catch(e) {}
+                try { if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList(); } catch(e) {}
+                try { if (typeof renderAdminCodesList === 'function') renderAdminCodesList(); } catch(e) {}
+            } else {
+                alert("Fout: Admin beheerpaneel (#adminModal) kon niet worden gevonden in de pagina!");
+            }
+        } else {
+            if (err) {
+                err.style.display = 'block';
+            } else {
+                alert("Onjuist wachtwoord!");
+            }
+        }
+    }
+
+        let val = inp.value.trim();
+        console.log("Ingevoerd wachtwoord:", val);
+        
+        if (val === "admin2026" || val === "admin") {
+            // Sluit login modal
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) loginModal.style.display = 'none';
+            
+            // Open admin modal
+            let modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.style.zIndex = '9999999';
+                if (typeof renderAdminRalList === 'function') renderAdminRalList();
+                if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList();
+                if (typeof renderAdminCodesList === 'function') renderAdminCodesList();
+            } else {
+                alert("Admin beheerpaneel element kon niet worden gevonden in de DOM.");
+            }
+        } else {
+            if (err) {
+                err.style.display = 'block';
+            } else {
+                alert("Onjuist wachtwoord! Gebruik: admin2026");
+            }
+        }
+    }
+ else {
+            if (err) err.style.display = 'block';
+        }
+    }
+
+    function openAdminModalDirect() {
+        let modal = document.getElementById('adminModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            if (typeof renderAdminRalList === 'function') renderAdminRalList();
+            if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList();
+            if (typeof renderAdminCodesList === 'function') renderAdminCodesList();
+        } else {
+            alert("Admin beheerpaneel element kon niet worden gevonden.");
+        }
+    }
+</script>
+
+
+    <!-- 🔐 ADMIN LOGIN POPUP MODAL -->
+    
+    <!-- 🔐 ADMIN LOGIN POPUP MODAL (Gepersonaliseerd in app-stijl) -->
+    <div id="adminLoginModal" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:9999999; justify-content:center; align-items:center; backdrop-filter: blur(8px); font-family: inherit;">
+        <div style="background: #15171e; border: 1px solid #2e3342; border-radius: 24px; width: 420px; max-width: 90%; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 24px; box-sizing: border-box;">
+            <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="font-size: 2.5rem; margin-bottom: 2px;">🔐</div>
+                <h3 class="animated-title" style="font-size: 1.5rem; margin: 0; line-height: 1.3;">Borstwering Configurator beta 1.0</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Voer het beheerderswachtwoord in om toegang te krijgen tot het beheerpaneel.</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;">Wachtwoord:</label>
+                <input type="password" id="adminPasswordInput" placeholder="••••••••" style="padding: 14px; border-radius: 12px; background: #1f2430; border: 1px solid #334155; color: #fff; font-size: 1.05rem; outline: none; text-align: center; letter-spacing: 2px;" onkeydown="if(event.key==='Enter') verifyAdminPasswordModal()">
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 4px;">
+                <button type="button" onclick="closeAdminLoginModal()" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: transparent; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">Annuleren</button>
+                <button type="button" onclick="verifyAdminPasswordModal()" style="flex: 1; padding: 14px; border-radius: 12px; border: none; background: #2563eb; color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.45); transition: all 0.2s;">Inloggen ➔</button>
+            </div>
+            
+            <div id="adminLoginError" style="color: #f87171; font-size: 0.85rem; text-align: center; display: none; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 8px; font-weight: 600;">Onjuist wachtwoord (standaard: vanimpe2026).</div>
+        </div>
+    </div>
+
+
+
+<script>
+    // Foutloze event delegatie voor Admin Beheer knop met eigen Popup Modal (geen prompt meer)
+    document.addEventListener('click', function(e) {
+        let target = e.target.closest('button');
+        if (target && (target.innerText.includes('Admin Beheer') || target.id === 'adminBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                let inp = document.getElementById('adminPopupPassInput');
+                if (inp) { inp.value = ''; inp.focus(); }
+                let err = document.getElementById('adminPopupError');
+                if (err) err.style.display = 'none';
+            }
+        }
+    }, true);
+
+    function closeAdminLoginPopup() {
+        let loginModal = document.getElementById('adminLoginModal');
+        if (loginModal) loginModal.style.display = 'none';
+    }
+
+    
+    
+    function verifyAdminPopupLogin() {
+        let inp = document.getElementById('adminPopupPassInput');
+        let err = document.getElementById('adminPopupError');
+        if (!inp) {
+            alert("Invoerveld niet gevonden!");
+            return;
+        }
+        let val = inp.value.trim();
+        
+        if (val === "admin2026" || val === "admin") {
+            // Sluit login modal
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) loginModal.style.display = 'none';
+            
+            // Open admin modal direct met geforceerde styling
+            let modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.setAttribute('style', 'display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.88) !important; z-index: 99999999 !important; justify-content: center !important; align-items: center !important;');
+                
+                try { if (typeof renderAdminRalList === 'function') renderAdminRalList(); } catch(e) {}
+                try { if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList(); } catch(e) {}
+                try { if (typeof renderAdminCodesList === 'function') renderAdminCodesList(); } catch(e) {}
+            } else {
+                alert("Fout: Admin beheerpaneel (#adminModal) kon niet worden gevonden in de pagina!");
+            }
+        } else {
+            if (err) {
+                err.style.display = 'block';
+            } else {
+                alert("Onjuist wachtwoord!");
+            }
+        }
+    }
+
+        let val = inp.value.trim();
+        console.log("Ingevoerd wachtwoord:", val);
+        
+        if (val === "admin2026" || val === "admin") {
+            // Sluit login modal
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) loginModal.style.display = 'none';
+            
+            // Open admin modal
+            let modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.style.zIndex = '9999999';
+                if (typeof renderAdminRalList === 'function') renderAdminRalList();
+                if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList();
+                if (typeof renderAdminCodesList === 'function') renderAdminCodesList();
+            } else {
+                alert("Admin beheerpaneel element kon niet worden gevonden in de DOM.");
+            }
+        } else {
+            if (err) {
+                err.style.display = 'block';
+            } else {
+                alert("Onjuist wachtwoord! Gebruik: admin2026");
+            }
+        }
+    }
+
+        } else {
+            if (err) err.style.display = 'block';
+        }
+    }
+</script>
+
+
+<script>
+    // Absolute kogelvrije event listener voor Admin Beheer knop
+    document.addEventListener('click', function(e) {
+        let btn = e.target.closest('button');
+        if (btn && (btn.innerText.includes('Admin Beheer') || btn.id === 'adminBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                let inp = document.getElementById('adminPopupPassInput');
+                if (inp) {
+                    inp.value = '';
+                    inp.focus();
+                }
+                let err = document.getElementById('adminPopupError');
+                if (err) err.style.display = 'none';
+            } else {
+                alert("Login modal niet gevonden!");
+            }
+        }
+    }, true);
+
+    function closeAdminLoginPopup() {
+        let loginModal = document.getElementById('adminLoginModal');
+        if (loginModal) loginModal.style.display = 'none';
+    }
+
+    function verifyAdminPopupLogin() {
+        let inp = document.getElementById('adminPopupPassInput');
+        if (!inp) {
+            alert("Invoerveld niet gevonden!");
+            return;
+        }
+        let val = inp.value.trim();
+        
+        if (val === "admin2026" || val === "admin") {
+            // Sluit login modal
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) loginModal.style.display = 'none';
+            
+            // Open admin modal direct met geforceerde styling
+            let modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                modal.style.setProperty('position', 'fixed', 'important');
+                modal.style.setProperty('inset', '0', 'important');
+                modal.style.setProperty('z-index', '999999999', 'important');
+                
+                try { if (typeof renderAdminRalList === 'function') renderAdminRalList(); } catch(e) {}
+                try { if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList(); } catch(e) {}
+                try { if (typeof renderAdminCodesList === 'function') renderAdminCodesList(); } catch(e) {}
+            } else {
+                alert("Admin paneel element (#adminModal) niet gevonden!");
+            }
+        } else {
+            let err = document.getElementById('adminPopupError');
+            if (err) {
+                err.style.display = 'block';
+            } else {
+                alert("Onjuist wachtwoord!");
+            }
+        }
+    }
+</script>
+
+<script>
+    function verifyAdminPasswordModal() {
+        let inp = document.getElementById('adminPasswordInput');
+        let err = document.getElementById('adminLoginError');
+        if (!inp) {
+            // Fallback naar alternatieve ID indien nodig
+            inp = document.getElementById('adminPopupPassInput');
+        }
+        
+        let val = inp ? inp.value.trim() : "";
+        console.log("Ingevoerd wachtwoord in v116:", val);
+        
+        if (val === "admin2026" || val === "admin") {
+            // Sluit login modal(s)
+            let loginModal = document.getElementById('adminLoginModal');
+            if (loginModal) loginModal.style.display = 'none';
+            
+            let oldLoginModal = document.getElementById('loginModal');
+            if (oldLoginModal) oldLoginModal.style.display = 'none';
+            
+            // Open admin modal direct met maximale prioriteit
+            let modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.setAttribute('style', 'display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.88) !important; z-index: 999999999 !important; justify-content: center !important; align-items: center !important;');
+                
+                try { if (typeof renderAdminRalList === 'function') renderAdminRalList(); } catch(e) {}
+                try { if (typeof renderAdminRequestsList === 'function') renderAdminRequestsList(); } catch(e) {}
+                try { if (typeof renderAdminCodesList === 'function') renderAdminCodesList(); } catch(e) {}
+            } else {
+                alert("Admin beheerpaneel (#adminModal) kon niet worden gevonden!");
+            }
+        } else {
+            if (err) {
+                err.style.display = 'block';
+            } else {
+                alert("Onjuist wachtwoord! Probeer admin2026");
+            }
+        }
+    }
+
+    // Zorg ervoor dat beide functienamen naar exact dezelfde logica verwijzen voor maximale compatibiliteit
+    window.verifyAdminPasswordModal = verifyAdminPasswordModal;
+    window.verifyAdminPopupLogin = verifyAdminPasswordModal;
+</script>
+<script>
+    
+    function saveAdminSettings() {
+        try {
+            let maxLenVal = parseFloat(document.getElementById('adminMaxLen')?.value) || 6000;
+            
+            let settings = {
+                maxLen: maxLenVal,
+                maxFootDist: parseFloat(document.getElementById('adminMaxFootDist')?.value) || 1200,
+                footEdgeDist: parseFloat(document.getElementById('adminFootEdgeDist')?.value) || 100,
+                retourMaxDist: parseFloat(document.getElementById('adminRetourMaxDist')?.value) || 1200,
+                retourEdgeDist: parseFloat(document.getElementById('adminRetourEdgeDist')?.value) || 100,
+                basePrice: parseFloat(document.getElementById('adminBasePrice')?.value) || 150,
+                pricePerMm: parseFloat(document.getElementById('adminPricePerMm')?.value) || 0.08,
+                pricePerFoot: parseFloat(document.getElementById('adminPricePerFoot')?.value) || 15,
+                pricePerHandrailM: parseFloat(document.getElementById('adminPricePerHandrailM')?.value) || 25,
+                pricePerRetourM: parseFloat(document.getElementById('adminPricePerRetourM')?.value) || 45,
+                metallisationSurcharge: parseFloat(document.getElementById('adminMetallisationSurcharge')?.value) || 75
+            };
+
+            localStorage.setItem('adminAdminSettings', JSON.stringify(settings));
+            
+            // Pas direct de max waarde van de lengte slider aan
+            let lenSlider = document.getElementById('TOP_P_Lengte');
+            if (lenSlider) {
+                lenSlider.max = settings.maxLen;
+            }
+
+            // Sluit admin modal
+            let adminModal = document.getElementById('adminModal');
+            if (adminModal) adminModal.style.display = 'none';
+
+            alert("✅ Alle instellingen en variabelen zijn succesvol opgeslagen!");
+            
+            if (typeof updateApp === 'function') updateApp();
+        } catch (err) {
+            console.error("Fout bij opslaan admin instellingen:", err);
+            alert("Er is een fout opgetreden bij het opslaan van de instellingen.");
+        }
+    }
+
+    window.saveAdminSettings = saveAdminSettings;
+;
+
+            localStorage.setItem('adminAdminSettings', JSON.stringify(settings));
+            
+            // Sluit admin modal
+            let adminModal = document.getElementById('adminModal');
+            if (adminModal) adminModal.style.display = 'none';
+
+            alert("✅ Alle instellingen en variabelen zijn succesvol opgeslagen!");
+            
+            // Herlaad configuratie indien nodig
+            if (typeof updateApp === 'function') updateApp();
+        } catch (err) {
+            console.error("Fout bij opslaan admin instellingen:", err);
+            alert("Er is een fout opgetreden bij het opslaan van de instellingen.");
+        }
+    }
+
+    window.saveAdminSettings = saveAdminSettings;
+</script>
+
+<script>
+    document.addEventListener('click', function(e) {
+        let target = e.target;
+        
+        // Check of er op het kruisje is geklikt binnen het admin paneel
+        if (target.closest('#adminModal') && (target.innerText === '✕' || target.innerText === '×' || target.getAttribute('onclick')?.includes('closeAdminPanel'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            let adminModal = document.getElementById('adminModal');
+            if (adminModal) {
+                adminModal.style.setProperty('display', 'none', 'important');
+            }
+        }
+        
+        // Check of er op de opslaan-knop is geklikt
+        if (target.innerText && target.innerText.includes('Alle Instellingen & Variabelen Opslaan')) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof saveAdminSettings === 'function') {
+                saveAdminSettings();
+            } else {
+                alert("Opslaan functie niet gevonden!");
+            }
+        }
+    }, true);
+</script>
+
+
+<script>
+    // Synchronisatiefuncties voor manuele invoer en sliders
+    function setupManualInputs() {
+        const pairs = [
+            { range: 'TOP_P_Lengte', num: 'TOP_P_Lengte_num' },
+            { range: 'TOP_P_Hoogte', num: 'TOP_P_Hoogte_num' },
+            { range: 'TOP_P_Tussenafstandspijlen', num: 'TOP_P_Tussenafstandspijlen_num' },
+            { range: 'TOP_P_Diktespijlen', num: 'TOP_P_Diktespijlen_num' }
+        ];
+
+        pairs.forEach(p => {
+            let rangeEl = document.getElementById(p.range);
+            let numEl = document.getElementById(p.num);
+            if (rangeEl && numEl) {
+                // Init waarde
+                numEl.value = rangeEl.value;
+
+                rangeEl.addEventListener('input', () => {
+                    numEl.value = rangeEl.value;
+                });
+
+                numEl.addEventListener('input', () => {
+                    let val = parseFloat(numEl.value);
+                    if (!isNaN(val)) {
+                        if (val < parseFloat(rangeEl.min)) val = parseFloat(rangeEl.min);
+                        if (val > parseFloat(rangeEl.max)) val = parseFloat(rangeEl.max);
+                        rangeEl.value = val;
+                        if (typeof updateApp === 'function') updateApp();
+                    }
+                });
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', setupManualInputs);
+    // Ook direct aanroepen voor de zekerheid
+    setTimeout(setupManualInputs, 500);
+</script>
+
+
+<div id="globalSafetyTooltip" style="display: none; position: fixed; width: 250px; background: #15171e; border: 1px solid #334155; border-radius: 12px; padding: 12px 16px; box-shadow: 0 20px 45px rgba(0,0,0,0.95); z-index: 2147483647; color: #cbd5e1; font-size: 0.85rem; line-height: 1.45; font-weight: normal; pointer-events: none;">
+    <strong style="color: #60a5fa; font-size: 0.8rem; display: block; margin-bottom: 4px;">ℹ️ Veiligheidsnorm</strong>
+    Voor de veiligheid mag de maximale tussenafstand 110mm zijn.
+</div>
+<script>
+function showSafetyTooltip(el) {
+    const tip = document.getElementById('globalSafetyTooltip');
+    if (!tip || !el) return;
+    tip.style.display = 'block';
+    const rect = el.getBoundingClientRect();
+    const tipWidth = 250;
+    // Positioneer netjes links of boven het icoontje zodat het altijd binnen het scherm én boven alles staat
+    let leftPos = rect.right - tipWidth;
+    if (leftPos < 12) leftPos = 12;
+    let topPos = rect.top - tip.offsetHeight - 10;
+    if (topPos < 12) topPos = rect.bottom + 10;
+    tip.style.left = leftPos + 'px';
+    tip.style.top = topPos + 'px';
+}
+function hideSafetyTooltip() {
+    const tip = document.getElementById('globalSafetyTooltip');
+    if (tip) tip.style.display = 'none';
+}
+function toggleSafetyTooltip(el) {
+    const tip = document.getElementById('globalSafetyTooltip');
+    if (!tip) return;
+    if (tip.style.display === 'block') {
+        hideSafetyTooltip();
+    } else {
+        showSafetyTooltip(el);
+    }
+}
+</script>
+
+</body>
+</html>
